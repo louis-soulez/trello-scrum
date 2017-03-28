@@ -1,12 +1,12 @@
-## trello-scrum
+# trello-scrum
 
-# Requires:
+## Requires:
 - jq 1.5
 
-# Tested on:
+## Tested on:
 - bash 4.3.11
 
-# Usage:
+## Usage:
 - --backlog / -b        : Only cards from backlog
 - -B <project>          : Only cards from <project>
 - --evaluated / -e <Y/N>: Only cards evaluated (Y) or not (N)
