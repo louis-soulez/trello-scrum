@@ -6,14 +6,12 @@ function export {
   i=0
   while read input
   do 
-      
-      name=$(echo $input | jq -r '@html "\(.name)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      desc=$(echo $input | jq -r '@html "\(.desc)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      cost=$(echo $input | jq -r '@html "\(.cost)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      color=$(echo $input | jq -r '@html "\([.labels[] | select(.name | test("sprint"; "i") | not)] | first(.[]).color)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      
+      name=$(echo $input | jq -r '@html "\(.name)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
+      desc=$(echo $input | jq -r '@html "\(.desc)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
+      cost=$(echo $input | jq -r '@html "\(.cost)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
+      color=$(echo $input | jq -r '@html "\([.labels[] | select(.name | test("sprint"; "i") | not)] | first(.[]).color)"' | sed -e 's/\([\\^*+\.$-\\/&]\)/\\\1/g')
       ((index[$color]=index[$color]+1))
-       
+      
       results[$i]=$(sed -e "s/###CardTitle###/$name/" \
                         -e "s/###CardDesc###/$desc/" \
                         -e "s/###CardValue###/$cost/" \
@@ -73,8 +71,6 @@ function parse {
   elif [ "$EVALUATED" == "Y" ]; then
     filter="$filter and (.cost != \"\")"
   fi
-
-  echo $filter >&2
 
   cat trello.json \
   | jq "{} as \$idx | .lists as \$l | .cards as \$c | [ \$c[] | (.name | split(\" | \")) as \$n | { name: \$n[0], cost: (if \$n[1] == null then \"\" else \$n[1] end), list: (.idList as \$i | \$l[] | select ( .id == \$i )) | {name: .name, closed: .closed}, labels: [ .labels[] | { name: .name, color: (if .color == \"sky\" then \"cyan\" else .color end)} ], desc: .desc, closed: .closed} | select(.closed == false $filter) ]" \
