@@ -17,7 +17,7 @@ function export {
                         -e "s/###CardValue###/$cost/" \
                         -e "s/###CardColor###/$color/" \
                         -e "s/###CardCount###/#${index[$color]}/" \
-                        template.html)
+                        "$ROOT/template.$DISPLAY.html")
       ((i=i+1))
   done
 
@@ -85,6 +85,8 @@ OUTPUT="NO"
 BACKLOG="NO"
 TAIL=-1
 HEAD=-1
+ROOT=$(dirname $(echo $0))
+DISPLAY="card"
 while [[ $# -gt 0 ]]
 do
   key="$1"
@@ -94,6 +96,10 @@ do
       ;;
       -B)
         BACKLOG="$2"
+        shift
+      ;;
+      -d|--display)
+        DISPLAY="$2"
         shift
       ;;
       -e|--evaluated)
@@ -123,6 +129,7 @@ do
         TAIL=$2
         shift
       ;;
+
       *)
       ;;
   esac
