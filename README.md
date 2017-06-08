@@ -14,6 +14,8 @@
 - --sprint / -s <sprint>: Only cards from sprint <sprint>
 
 - --output / -o <file>  : Define output file <file> (stdout if not defined)
+- --input / -i <file>   : Define input file <file> (trello.json if not defined)
+- --display / -d <name> : Select <name> template (card if not defined)
 - --head / -h <n>       : Only generate the <n> first cards
 - --tail / -t <n>       : Only generate the <n> last cards
 
