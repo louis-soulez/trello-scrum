@@ -20,7 +20,7 @@ function export {
                         "$ROOT/template.$DISPLAY.html")
       ((i=i+1))
   done
-
+  
   if [[ $HEAD -ge 0 ]]
   then
     if [[ $TAIL -ge 0 ]]
@@ -72,7 +72,7 @@ function parse {
     filter="$filter and (.cost != \"\")"
   fi
 
-  cat trello.json \
+  cat $INPUT \
   | jq "{} as \$idx | .lists as \$l | .cards as \$c | [ \$c[] | (.name | split(\" | \")) as \$n | { name: \$n[0], cost: (if \$n[1] == null then \"\" else \$n[1] end), list: (.idList as \$i | \$l[] | select ( .id == \$i )) | {name: .name, closed: .closed}, labels: [ .labels[] | { name: .name, color: (if .color == \"sky\" then \"cyan\" else .color end)} ], desc: .desc, closed: .closed} | select(.closed == false $filter) ]" \
   | jq -r '@json "\(.[])"' \
   | export
@@ -86,6 +86,7 @@ BACKLOG="NO"
 TAIL=-1
 HEAD=-1
 ROOT=$(dirname $(echo $0))
+INPUT="$ROOT/trello.json"
 DISPLAY="card"
 while [[ $# -gt 0 ]]
 do
@@ -108,6 +109,10 @@ do
       ;;
       -h|--head)
         HEAD=$2
+        shift
+      ;;
+      -i|--input)
+        INPUT="$2";
         shift
       ;;
       -l|--list)
@@ -137,7 +142,7 @@ do
 done
 
 if [ "$REFRESH" == "YES" ]; then
-  curl -o trello.json https://trello.com/b/IghukAoD.json
+  curl -o $INPUT https://trello.com/b/IghukAoD.json
 fi
 
 if [ "$OUTPUT" == "NO" ]; then
