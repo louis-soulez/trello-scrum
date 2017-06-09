@@ -10,12 +10,15 @@ function export {
       desc=$(echo $input | jq -r '@html "\(.desc)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
       cost=$(echo $input | jq -r '@html "\(.cost)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
       color=$(echo $input | jq -r '@html "\([.labels[] | select(.name | test("sprint"; "i") | not)] | first(.[]).color)"' | sed -e 's/\([\\^*+\.$-\\/&]\)/\\\1/g')
+      debt=$( if ( $(echo $input | jq -r '[.labels[] | contains({name: "Tech Debt"})] | any') ); then echo "red"; else echo "$color"; fi)
+
       ((index[$color]=index[$color]+1))
       
       results[$i]=$(sed -e "s/###CardTitle###/$name/" \
                         -e "s/###CardDesc###/$desc/" \
                         -e "s/###CardValue###/$cost/" \
                         -e "s/###CardColor###/$color/" \
+                        -e "s/###CardDebt###/$debt/" \
                         -e "s/###CardCount###/#${index[$color]}/" \
                         "$ROOT/template.$DISPLAY.html")
       ((i=i+1))
