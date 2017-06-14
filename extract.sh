@@ -30,12 +30,10 @@ function export {
   
   if [[ $HEAD -ge 0 ]]
   then
+    end=$HEAD
     if [[ $TAIL -ge 0 ]]
     then
       start=$(( $HEAD - $TAIL ))
-      end=$HEAD
-    else
-      end=$HEAD
     fi
   else
     if [[ $TAIL -ge 0 ]]
