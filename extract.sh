@@ -23,27 +23,30 @@ function export {
                         "$ROOT/template.$DISPLAY.html")
       ((i=i+1))
   done
+
+  count=${#results[*]}
+  start=0
+  end=$((count))
   
   if [[ $HEAD -ge 0 ]]
   then
     if [[ $TAIL -ge 0 ]]
     then
-      res=${results[@]:$(( $HEAD - $TAIL )):$TAIL}
+      start=$(( $HEAD - $TAIL ))
+      end=$HEAD
     else
-      res=${results[@]:0:$HEAD}
+      end=$HEAD
     fi
   else
     if [[ $TAIL -ge 0 ]]
     then
-      res=${results[@]:$(( ${#resuls[*]} - $TAIL ))}
-    else
-      res=${results[@]}
+      start=$(( $count - $TAIL ))
     fi
   fi
 
-  for result in $res
-  do
-    echo $result
+  for (( i=$start; i < $end; i++ ))
+  do 
+    echo "${results[$i]}"
   done
 }
 
