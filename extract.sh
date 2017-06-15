@@ -4,45 +4,48 @@ function export {
   declare -A index
   results=()
   i=0
-  while read input
-  do 
-      
-      name=$(echo $input | jq -r '@html "\(.name)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      desc=$(echo $input | jq -r '@html "\(.desc)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      cost=$(echo $input | jq -r '@html "\(.cost)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      color=$(echo $input | jq -r '@html "\([.labels[] | select(.name | test("sprint"; "i") | not)] | first(.[]).color)"' | sed -e 's/\([\\^*+.$-\\/&]\)/\\\1/g')
-      
+  while read -r input
+  do
+
+      name=$(echo $input | jq -r '@html "\(.name)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
+      desc=$(echo $input | jq -r '@html "\(.desc)"' | sed -e ':a;N;$!ba;s:\n:<br />:g' -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
+      cost=$(echo $input | jq -r '@html "\(.cost)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
+      color=$(echo $input | jq -r '@html "\([.labels[] | select(.name | test("sprint"; "i") | not)] | first(.[]).color)"' | sed -e 's/\([\\^*+\.$-\\/&]\)/\\\1/g')
+      debt=$( if ( $(echo $input | jq -r '[.labels[] | contains({name: "Tech Debt"})] | any') ); then echo "red"; else echo "$color"; fi)
+
       ((index[$color]=index[$color]+1))
-       
+      
       results[$i]=$(sed -e "s/###CardTitle###/$name/" \
                         -e "s/###CardDesc###/$desc/" \
                         -e "s/###CardValue###/$cost/" \
                         -e "s/###CardColor###/$color/" \
+                        -e "s/###CardDebt###/$debt/" \
                         -e "s/###CardCount###/#${index[$color]}/" \
-                        template.html)
+                        "$ROOT/template.$DISPLAY.html")
       ((i=i+1))
   done
 
+  count=${#results[*]}
+  start=0
+  end=$((count))
+  
   if [[ $HEAD -ge 0 ]]
   then
+    end=$HEAD
     if [[ $TAIL -ge 0 ]]
     then
-      res=${results[@]:$(( $HEAD - $TAIL )):$TAIL}
-    else
-      res=${results[@]:0:$HEAD}
+      start=$(( $HEAD - $TAIL ))
     fi
   else
     if [[ $TAIL -ge 0 ]]
     then
-      res=${results[@]:$(( ${#resuls[*]} - $TAIL ))}
-    else
-      res=${results[@]}
+      start=$(( $count - $TAIL ))
     fi
   fi
 
-  for result in $res
-  do
-    echo $result
+  for (( i=$start; i < $end; i++ ))
+  do 
+    echo "${results[$i]}"
   done
 }
 
@@ -74,9 +77,7 @@ function parse {
     filter="$filter and (.cost != \"\")"
   fi
 
-  echo $filter >&2
-
-  cat trello.json \
+  cat $INPUT \
   | jq "{} as \$idx | .lists as \$l | .cards as \$c | [ \$c[] | (.name | split(\" | \")) as \$n | { name: \$n[0], cost: (if \$n[1] == null then \"\" else \$n[1] end), list: (.idList as \$i | \$l[] | select ( .id == \$i )) | {name: .name, closed: .closed}, labels: [ .labels[] | { name: .name, color: (if .color == \"sky\" then \"cyan\" else .color end)} ], desc: .desc, closed: .closed} | select(.closed == false $filter) ]" \
   | jq -r '@json "\(.[])"' \
   | export
@@ -89,6 +90,9 @@ OUTPUT="NO"
 BACKLOG="NO"
 TAIL=-1
 HEAD=-1
+ROOT=$(dirname $(echo $0))
+INPUT="$ROOT/trello.json"
+DISPLAY="card"
 while [[ $# -gt 0 ]]
 do
   key="$1"
@@ -100,12 +104,20 @@ do
         BACKLOG="$2"
         shift
       ;;
+      -d|--display)
+        DISPLAY="$2"
+        shift
+      ;;
       -e|--evaluated)
         EVALUATED="$2"
         shift
       ;;
       -h|--head)
         HEAD=$2
+        shift
+      ;;
+      -i|--input)
+        INPUT="$2";
         shift
       ;;
       -l|--list)
@@ -127,6 +139,7 @@ do
         TAIL=$2
         shift
       ;;
+
       *)
       ;;
   esac
@@ -134,7 +147,7 @@ do
 done
 
 if [ "$REFRESH" == "YES" ]; then
-  curl -o trello.json https://trello.com/b/IghukAoD.json
+  curl -o $INPUT https://trello.com/b/IghukAoD.json
 fi
 
 if [ "$OUTPUT" == "NO" ]; then
