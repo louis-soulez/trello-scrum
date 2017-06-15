@@ -4,10 +4,11 @@ function export {
   declare -A index
   results=()
   i=0
-  while read input
-  do 
+  while read -r input
+  do
+
       name=$(echo $input | jq -r '@html "\(.name)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
-      desc=$(echo $input | jq -r '@html "\(.desc)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
+      desc=$(echo $input | jq -r '@html "\(.desc)"' | sed -e ':a;N;$!ba;s:\n:<br />:g' -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
       cost=$(echo $input | jq -r '@html "\(.cost)"' | sed -e 's/\([\\^*+\.$\\/&-]\)/\\\1/g')
       color=$(echo $input | jq -r '@html "\([.labels[] | select(.name | test("sprint"; "i") | not)] | first(.[]).color)"' | sed -e 's/\([\\^*+\.$-\\/&]\)/\\\1/g')
       debt=$( if ( $(echo $input | jq -r '[.labels[] | contains({name: "Tech Debt"})] | any') ); then echo "red"; else echo "$color"; fi)
