@@ -90,6 +90,7 @@ OUTPUT="NO"
 BACKLOG="NO"
 TAIL=-1
 HEAD=-1
+PLOT=false
 ROOT=$(dirname $(echo $0))
 INPUT="$ROOT/trello.json"
 DISPLAY="card"
@@ -128,6 +129,10 @@ do
         OUTPUT="$2"
         shift
       ;;
+      -p|--plot)
+        PLOT=true
+        shift
+      ;;
       -r|--refresh)
         REFRESH="YES"
       ;;
@@ -150,7 +155,9 @@ if [ "$REFRESH" == "YES" ]; then
   curl -o $INPUT https://trello.com/b/IghukAoD.json
 fi
 
-if [ "$OUTPUT" == "NO" ]; then
+if ( $PLOT ); then
+  echo "xx"
+elif [ "$OUTPUT" == "NO" ]; then
   parse
 else
   parse > $OUTPUT
