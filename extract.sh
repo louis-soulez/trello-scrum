@@ -86,6 +86,10 @@ function parse {
        "</html>"
 }
 
+function plot {
+  cat $INPUT | "$ROOT/extract.plot.sh"
+}
+
 OUTPUT="NO"
 BACKLOG="NO"
 TAIL=-1
@@ -156,7 +160,7 @@ if [ "$REFRESH" == "YES" ]; then
 fi
 
 if ( $PLOT ); then
-  echo "xx"
+  plot
 elif [ "$OUTPUT" == "NO" ]; then
   parse
 else
