@@ -87,7 +87,8 @@ function parse {
 }
 
 function plot {
-  cat $INPUT | "$ROOT/extract.plot.sh"
+  cat $INPUT |
+    "$ROOT/extract.plot.sh" 1
 }
 
 OUTPUT="NO"
