@@ -57,5 +57,55 @@ case $1 in
             }
           ] | reverse"
   ;;
-
+  2)
+    jq -r '
+        (
+          [
+            "Project",
+            (
+              [
+                .[] |
+                .projects[] |
+                [
+                  .name,
+                  .id
+                ]
+              ] |
+              unique |
+              .[][0]
+            )
+          ] | 
+          @tsv
+        ),
+    
+        (
+          .[] as $s |
+          [
+            $s.sprint,
+            [
+              [
+                .[] |
+                .projects[] |
+                [
+                  .name,
+                  .id
+                ]
+              ] |
+              unique |
+              .[][1]
+            ]
+            [] as $id |
+            
+            $s.projects |
+            if contains([{"id": $id}])
+            then
+              .[] | select(.id == $id).cost
+            else
+              "-"
+            end
+          ] |
+          @tsv
+        )
+      '
+  ;;
 esac
